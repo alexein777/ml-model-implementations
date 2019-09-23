@@ -1,2 +1,2 @@
-# neural-network-implementation
-Implementation of neural network in Python using NumPy library. 
+# ml-model-implementations
+Implementation of basic machine-learning models in Python using numpy and pandas libraries. 
