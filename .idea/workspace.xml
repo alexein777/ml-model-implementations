@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="96fff088-66a9-489f-91fd-65e15f23a867" name="Default Changelist" comment="" />
+    <list default="true" id="96fff088-66a9-489f-91fd-65e15f23a867" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -10,9 +13,18 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/andrew_ng/06_neural_network_lin_reg_auto-mpg.ipynb">
           <provider selected="true" editor-type-id="jupyter-editor" />
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="17">
+              <caret line="1" column="18" lean-forward="true" selection-start-line="1" selection-start-column="18" selection-end-line="1" selection-end-column="18" />
+            </state>
+          </provider>
         </entry>
       </file>
     </leaf>
@@ -37,6 +49,7 @@
         <option value="$PROJECT_DIR$/andrew_ng/iris_extender.ipynb" />
         <option value="$PROJECT_DIR$/andrew_ng/05_logistisc_regression_OneVsAll_iris_extended.ipynb" />
         <option value="$PROJECT_DIR$/andrew_ng/06_neural_network_lin_reg_auto-mpg.ipynb" />
+        <option value="$PROJECT_DIR$/.gitignore" />
       </list>
     </option>
   </component>
@@ -141,12 +154,12 @@
       <workItem from="1569059279931" duration="8322000" />
       <workItem from="1569095726892" duration="3125000" />
       <workItem from="1569170786325" duration="8172000" />
-      <workItem from="1569236483821" duration="949000" />
+      <workItem from="1569236483821" duration="2908000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="131892000" />
+    <option name="totallyTimeSpent" value="133851000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
@@ -266,6 +279,13 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/andrew_ng/06_neural_network_lin_reg_auto-mpg.ipynb">
       <provider selected="true" editor-type-id="jupyter-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="17">
+          <caret line="1" column="18" lean-forward="true" selection-start-line="1" selection-start-column="18" selection-end-line="1" selection-end-column="18" />
+        </state>
+      </provider>
     </entry>
   </component>
   <component name="masterDetails">
