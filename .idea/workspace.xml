@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="96fff088-66a9-489f-91fd-65e15f23a867" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/andrew_ng/06_neural_network_classification_binary.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/andrew_ng/06_neural_network_classification_binary.ipynb" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -26,6 +25,11 @@
         <option value="Jupyter Notebook" />
       </list>
     </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>set_model</find>
+    </findStrings>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -181,21 +185,21 @@
       <workItem from="1569170786325" duration="8172000" />
       <workItem from="1569236483821" duration="21288000" />
       <workItem from="1569260750877" duration="756000" />
-      <workItem from="1569320784613" duration="8235000" />
+      <workItem from="1569320784613" duration="17190000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="161222000" />
+    <option name="totallyTimeSpent" value="170177000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="1366" height="768" extended-state="6" />
+    <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.24281392" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Jupyter" order="0" weight="0.30716723" />
+      <window_info anchor="bottom" id="Jupyter" order="0" weight="0.40273038" />
       <window_info anchor="bottom" id="Message" order="1" />
       <window_info anchor="bottom" id="Find" order="2" />
       <window_info anchor="bottom" id="Run" order="3" weight="0.32935154" />
@@ -219,7 +223,7 @@
       <window_info content_ui="combo" id="Project" order="0" weight="0.24281392" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Jupyter" order="0" visible="true" weight="0.30716723" />
+      <window_info anchor="bottom" id="Jupyter" order="0" visible="true" weight="0.40273038" />
       <window_info anchor="bottom" id="Message" order="1" />
       <window_info anchor="bottom" id="Find" order="2" />
       <window_info anchor="bottom" id="Run" order="3" weight="0.32935154" />
