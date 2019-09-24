@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="96fff088-66a9-489f-91fd-65e15f23a867" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/andrew_ng/06_neural_network_lin_reg_auto-mpg.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/andrew_ng/06_neural_network_classification_binary.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/andrew_ng/06_neural_network_classification_binary.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/andrew_ng/06_neural_network_classification_binary.ipynb" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -16,20 +16,6 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/andrew_ng/06_neural_network_classification_binary.ipynb">
           <provider selected="true" editor-type-id="jupyter-editor" />
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/andrew_ng/04_logistic_regression_OneVsAll.ipynb">
-          <provider selected="true" editor-type-id="jupyter-editor" />
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/.gitignore">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="34">
-              <caret line="2" column="19" selection-start-line="2" selection-start-column="19" selection-end-line="2" selection-end-column="19" />
-            </state>
-          </provider>
         </entry>
       </file>
     </leaf>
@@ -193,12 +179,14 @@
       <workItem from="1569059279931" duration="8322000" />
       <workItem from="1569095726892" duration="3125000" />
       <workItem from="1569170786325" duration="8172000" />
-      <workItem from="1569236483821" duration="17643000" />
+      <workItem from="1569236483821" duration="21288000" />
+      <workItem from="1569260750877" duration="756000" />
+      <workItem from="1569320784613" duration="8235000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="148586000" />
+    <option name="totallyTimeSpent" value="161222000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1366" height="768" extended-state="6" />
@@ -207,7 +195,7 @@
       <window_info content_ui="combo" id="Project" order="0" weight="0.24281392" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Jupyter" order="0" weight="0.21407625" />
+      <window_info anchor="bottom" id="Jupyter" order="0" weight="0.30716723" />
       <window_info anchor="bottom" id="Message" order="1" />
       <window_info anchor="bottom" id="Find" order="2" />
       <window_info anchor="bottom" id="Run" order="3" weight="0.32935154" />
@@ -231,7 +219,7 @@
       <window_info content_ui="combo" id="Project" order="0" weight="0.24281392" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Jupyter" order="0" visible="true" weight="0.38566554" />
+      <window_info anchor="bottom" id="Jupyter" order="0" visible="true" weight="0.30716723" />
       <window_info anchor="bottom" id="Message" order="1" />
       <window_info anchor="bottom" id="Find" order="2" />
       <window_info anchor="bottom" id="Run" order="3" weight="0.32935154" />
@@ -302,13 +290,13 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/datasets/auto-mpg.csv">
       <provider editor-type-id="text-editor" />
+      <provider editor-type-id="csv-table-editor">
+        <state showInfoPanel="true" fixedHeaders="false" rowLines="3" />
+      </provider>
       <provider selected="true" editor-type-id="csv-text-editor">
         <state relative-caret-position="-6256">
           <caret line="7" column="22" selection-start-line="7" selection-start-column="22" selection-end-line="7" selection-end-column="22" />
         </state>
-      </provider>
-      <provider editor-type-id="csv-table-editor">
-        <state showInfoPanel="true" fixedHeaders="false" rowLines="3" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/andrew_ng/03_logistic_regression_binary.ipynb">
@@ -327,23 +315,8 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/quantum_fourier.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="188">
-          <caret line="585" column="16" lean-forward="true" selection-start-line="585" selection-start-column="16" selection-end-line="585" selection-end-column="16" />
-          <folding>
-            <element signature="e#0#39#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/plot_ellipsoid.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="14" column="11" selection-start-line="14" selection-start-column="11" selection-end-line="14" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/quantum_fourier.py" />
+    <entry file="file://$PROJECT_DIR$/plot_ellipsoid.py" />
     <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="34">
