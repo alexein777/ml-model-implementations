@@ -28,6 +28,9 @@ def hypothesis_neural(neural_model, input_data):
 
         a_l = a_lp1
 
+    if a_l.shape[0] == 1:
+        return a_l[0]
+
     return a_l
 
 
@@ -108,7 +111,7 @@ def loss_logistic(X_data, y_data, neural_model, lambda_param=0):
     elif out_size == 1:
         for i in range(N):
             y_i = y_data[i][0]
-            y_i_predict = hypothesis_neural(neural_model, X_data[i])[0]
+            y_i_predict = hypothesis_neural(neural_model, X_data[i])
 
             loss += y_i * np.log(y_i_predict) + (1 - y_i) * np.log(1 - y_i_predict)
     else:
@@ -157,24 +160,20 @@ def train_test_split(X_data, y_data, ratio='0.7 : 0.3'):
 
     return X_train, y_train, X_test, y_test
 
-
-def train_cv_test_split(X, y, ratio):
-    pass
-
-
-def plot_learning_curves(X_train, y_train, X_test, y_test, classifier, lambda_learned):
+def plot_learning_curves(X_train, y_train, X_test, y_test, classifier):
     N_train = X_train.shape[0]
     N_test = X_test.shape[0]
 
     losses_train = []
     losses_test = []
 
+    # Napomena: loss_train i loss_test se racunaju BEZ regularizacionog izraza, tj. za lambda=0
     for N in range(1, N_train):
-        loss_train_N = classifier.loss(X_train[:N], y_train[:N], lambda_learned)
+        loss_train_N = classifier.loss(X_train[:N], y_train[:N])  # <- lambda_param=0
         losses_train.append(loss_train_N)
 
         if N < N_test:
-            loss_test_N = classifier.loss(X_test[:N], y_test[:N], lambda_learned)
+            loss_test_N = classifier.loss(X_test[:N], y_test[:N])  # <- lambda_param=0
             losses_test.append(loss_test_N)
 
     plt.plot(range(1, N_train), losses_train)
@@ -426,7 +425,7 @@ class NeuralNetwork:
             self.set_layer(l + 1, a_l)
 
     def backward_propagation_deltas(self, y_data):
-        delta_output = self.network[self.layers_num - 1] - y_data
+        delta_output = y_data - self.network[self.layers_num - 1]
         self.set_delta(self.layers_num - 1, delta_output)
 
         for l in range(self.layers_num - 2, 0, -1):
@@ -477,7 +476,7 @@ class NeuralNetwork:
 
             a_l = self.network[l].reshape(-1, 1).transpose()
 
-            delta_accumulators[l] += delta_lp1.dot(a_l).copy()
+            delta_accumulators[l] += delta_lp1.dot(a_l)
 
     def __loss_single(self, y_data):
         # U trenutku pozivanja ove funkcije vec je izvrsen forward propagation
@@ -522,7 +521,7 @@ class NeuralNetwork:
         matrix_sizes = get_matrix_sizes(self.model)
         self.model_trained = roll_vec_to_matrix_array(model_trained, matrix_sizes)
 
-        return Classifier(self.model_trained)
+        return Classifier(self.model_trained, lambda_learned=lambda_param)
 
     def predict(self, input_data):
         self.propagate(self.model_trained, input_data)
@@ -575,16 +574,12 @@ class NeuralNetwork:
 
 
 class Classifier:
-    def __init__(self, neural_model):
+    def __init__(self, neural_model, lambda_learned=-1):
         self.model = neural_model
+        self.lambda_learned = lambda_learned
 
     def predict(self, input_data):
-        y_predict = hypothesis_neural(self.model, input_data)
-
-        if y_predict.shape[0] == 1:
-            return y_predict[0]
-        else:
-            return y_predict
+        return hypothesis_neural(self.model, input_data)
 
     def loss(self, X_data, y_data, lambda_param=0):
         return loss_logistic(X_data, y_data, self.model, lambda_param)
