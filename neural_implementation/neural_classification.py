@@ -229,7 +229,7 @@ def gradient_descent(X_data,
     # algoritam gradijentnog spusta
     w = neural_network.unroll_model()
     for i in range(num_iter):
-        loss, gradient = neural_network.backward_propagation(X_data, y_data, lambda_param)
+        loss, gradient = neural_network.backpropagation(X_data, y_data, lambda_param)
         w = w - alpha * gradient
 
         # VRLO VAZAN KORAK: nakon sto je model azuriran, treba ga azurirati UNUTAR neuralne
@@ -425,7 +425,7 @@ class NeuralNetwork:
             self.set_layer(l + 1, a_l)
 
     def backward_propagation_deltas(self, y_data):
-        delta_output = y_data - self.network[self.layers_num - 1]
+        delta_output = self.network[self.layers_num - 1] - y_data
         self.set_delta(self.layers_num - 1, delta_output)
 
         for l in range(self.layers_num - 2, 0, -1):
@@ -443,7 +443,7 @@ class NeuralNetwork:
         # delta_0 je uvek nula-vektor, postavljen jos prilikom inicijalizacije same mreze
 
     # Funkcija koja racuna uporedo parcijalne izvode (gradijent) i funkciju gubitka
-    def backward_propagation(self, X_training, y_training, lambda_param=0):
+    def backpropagation(self, X_training, y_training, lambda_param=0):
         accs = []
         for l in range(self.layers_num - 1):
             delta_acc_l = np.zeros(self.layer_mapper_sizes[l])
@@ -456,7 +456,7 @@ class NeuralNetwork:
 
         N = X_training.shape[0]
         for i in range(N):
-            self.forward_propagation(X_training[i])  # a_0 = X[i] ...
+            self.forward_propagation(X_training[i])
             self.backward_propagation_deltas(y_training[i])
             self.__accumulate_deltas(delta_accumulators)
 
