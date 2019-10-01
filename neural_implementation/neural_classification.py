@@ -581,6 +581,37 @@ class Classifier:
     def predict(self, input_data):
         return hypothesis_neural(self.model, input_data)
 
+    @staticmethod
+    def prediction_info(y_predict, class_to_name_mapper=None):
+        info = ''
+
+        if type(y_predict) == np.ndarray:
+            max_val = float('-inf')
+            cls = 0
+
+            for i, val in enumerate(y_predict):
+                if max_val < val:
+                    max_val = val
+                    cls = i
+
+            if class_to_name_mapper is not None:
+                info = f'Prediction vector: {y_predict}\nMax prediction value: {max_val} (at ' \
+                    f'position {cls})\nClass: {class_to_name_mapper[cls]}'
+            else:
+                info = f'Prediction vector: {y_predict}\nMax prediction value: {max_val}\nClass: {cls}'
+        else:
+            if y_predict < 0.5:
+                cls = 0
+            else:
+                cls = 1
+
+            if class_to_name_mapper is not None:
+                info = f'Prediction: {y_predict}\nClass: {class_to_name_mapper[cls]}'
+            else:
+                info = f'Prediction: {y_predict}Class: {cls}'
+
+        print(info)
+
     def loss(self, X_data, y_data, lambda_param=0):
         return loss_logistic(X_data, y_data, self.model, lambda_param)
 
