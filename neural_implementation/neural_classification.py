@@ -621,3 +621,4 @@ class Classifier:
         for l in range(self.model.shape[0]):
             print(f'W_{l}: {l} -> {l + 1}')
             print(self.model[l])
+
