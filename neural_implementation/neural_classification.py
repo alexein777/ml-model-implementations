@@ -23,6 +23,7 @@ def hypothesis_neural(neural_model, input_data):
         z_lp1 = neural_model[l].dot(a_l)
         a_lp1 = g_sigmoid(z_lp1)
 
+        # Ako nije poslednji sloj, dodaj bias jedinicu
         if l != neural_model.shape[0] - 1:
             a_lp1 = np.concatenate((np.array([1]), a_lp1))
 
@@ -160,6 +161,7 @@ def train_test_split(X_data, y_data, ratio='0.7 : 0.3'):
 
     return X_train, y_train, X_test, y_test
 
+
 def plot_learning_curves(X_train, y_train, X_test, y_test, classifier):
     N_train = X_train.shape[0]
     N_test = X_test.shape[0]
@@ -188,7 +190,7 @@ def plot_learning_curves(X_train, y_train, X_test, y_test, classifier):
     plt.show()
 
 
-def gradient_checking(X_data, y_data, neural_model, lambda_param=0, eps=10e-4):
+def gradient_checking(X_data, y_data, neural_model, lambda_param=0, eps=1e-4):
     w_unrolled = unroll_matrix_array(neural_model)
     n = len(w_unrolled)
 
@@ -220,16 +222,41 @@ def gradient_descent(X_data,
                      alpha=0.01,
                      num_iter=1000,
                      lambda_param=0,
-                     plot=False):
+                     plot=False,
+                     gc_it=-1,
+                     gc_log_path=None):
+
     loss_history = np.zeros((num_iter, 1))
     matrix_sizes = get_matrix_sizes(neural_network.model)
 
-    # Podsetnik: neuralna mreza prilikom kreiranja vec ima inicijalni model.
-    # Ovde je dovoljno samo da ga razvijemo u vektor kako bi ga pripremili za
-    # algoritam gradijentnog spusta
+    # Pre nego sto zapocnemo trening modela potrebno je da se on inicijalizuje.
+    # Za to se koristi random inicijalizacija
+    neural_network.initialize_model()
     w = neural_network.unroll_model()
+
+    f = None
+    logged = True
+    if gc_log_path is not None:
+        try:
+            f = open(gc_log_path, 'w')
+        except IOError:
+            print('Log file not found: logging to STDOUT ...')
+            logged = False
+
     for i in range(num_iter):
         loss, gradient = neural_network.backpropagation(X_data, y_data, lambda_param)
+
+        if gc_it > 0 and i % gc_it == 0:
+            grad_approx = gradient_checking(X_data, y_data, neural_network.model, lambda_param=lambda_param)
+
+            diff = abs(gradient - grad_approx)
+            out = f'Iteration {i}:\n############################\nGradient = \n{gradient}\n\nGradient ' \
+                  f'approximate =\n{grad_approx}\n\nDiff = \n{diff}\n\n '
+            if logged:
+                f.write(out)
+            else:
+                print(out)
+
         w = w - alpha * gradient
 
         # VRLO VAZAN KORAK: nakon sto je model azuriran, treba ga azurirati UNUTAR neuralne
@@ -237,6 +264,9 @@ def gradient_descent(X_data,
         neural_network.set_model(roll_vec_to_matrix_array(w, matrix_sizes))
 
         loss_history[i] = loss
+
+    if logged:
+        f.close()
 
     if plot:
         plt.plot(range(num_iter), loss_history)
@@ -253,13 +283,14 @@ def gradient_descent(X_data,
 
 
 class NeuralNetwork:
-    def __init__(self, input_layer_size, hidden_layer_options, output_layer_size, eps=10e-1):
+    def __init__(self, input_layer_size, hidden_layer_options, output_layer_size, eps_init=1e-1):
         self.input_layer_size = input_layer_size
         self.hidden_layers_num = len(hidden_layer_options)
         self.layers_num = self.hidden_layers_num + 2
         self.output_layer_size = output_layer_size
         self.layer_sizes = [input_layer_size] + hidden_layer_options + [output_layer_size]
         self.layer_indices = range(self.layers_num)
+        self.eps_init = eps_init
 
         if output_layer_size == 2:
             raise ValueError('Nekorektna velicina izlaznog sloja 2: za binarnu klasifikaciju'
@@ -296,7 +327,7 @@ class NeuralNetwork:
         # inicijalizacija modela, tj. matrica W_i za svaki sloj
         ws = []
         for l in range(self.layers_num - 1):
-            w_l = 2 * eps * np.random.random(self.layer_mapper_sizes[l]) - eps
+            w_l = 2 * self.eps_init * np.random.random(self.layer_mapper_sizes[l]) - self.eps_init
             ws.append(w_l)
 
         self.model = np.array(ws)
@@ -346,7 +377,7 @@ class NeuralNetwork:
         self.__layer_index_check(layer_index)
         self.__set_layer_index_check(layer_index, units_vec)
 
-        self.network[layer_index] = units_vec
+        self.network[layer_index] = units_vec.copy()
 
     def set_all_layers(self, all_layers):
         for l in range(self.layers_num):
@@ -362,7 +393,7 @@ class NeuralNetwork:
 
             raise ValueError(error_message)
 
-        self.model[layer_index] = mapper
+        self.model[layer_index] = mapper.copy()
 
     # Funkcija po analogiji za slojeve, radi doslednosti
     def set_all_mappers(self, all_mappers):
@@ -376,7 +407,7 @@ class NeuralNetwork:
         self.__layer_index_check(layer_index)
         self.__set_layer_index_check(layer_index, delta_vec)
 
-        self.deltas[layer_index] = delta_vec
+        self.deltas[layer_index] = delta_vec.copy()
 
     def set_all_deltas(self, all_deltas):
         for l in self.layer_indices:
@@ -388,12 +419,15 @@ class NeuralNetwork:
         return self.model[layer_index].ravel()
 
     def unroll_model(self):
-        unrolled_model = np.array([])
-        for l in range(self.layers_num - 1):
-            W_l = self.unroll_mapper(l)
-            unrolled_model = np.concatenate((unrolled_model, W_l), axis=None)
+        return unroll_matrix_array(self.model)
 
-        return np.array(unrolled_model).ravel()
+    def initialize_model(self):
+        ws = []
+        for l in range(self.layers_num - 1):
+            w_l = 2 * self.eps_init * np.random.random(self.layer_mapper_sizes[l]) - self.eps_init
+            ws.append(w_l)
+
+        self.model = np.array(ws)
 
     def forward_propagation(self, input_layer_data):
         a_l = input_layer_data
@@ -401,7 +435,7 @@ class NeuralNetwork:
 
         for l in range(self.layers_num - 1):
             z_lp1 = self.model[l].dot(a_l)  # z(l+1) = W(l)*a(l)
-            a_l = g_sigmoid(z_lp1)
+            a_l = g_sigmoid(z_lp1)  # aktivacija
 
             # Dodavanje bias jedinice u a_l vektor
             if l != self.layers_num - 2:
@@ -443,7 +477,7 @@ class NeuralNetwork:
         # delta_0 je uvek nula-vektor, postavljen jos prilikom inicijalizacije same mreze
 
     # Funkcija koja racuna uporedo parcijalne izvode (gradijent) i funkciju gubitka
-    def backpropagation(self, X_training, y_training, lambda_param=0):
+    def backpropagation(self, X_train, y_train, lambda_param=0):
         accs = []
         for l in range(self.layers_num - 1):
             delta_acc_l = np.zeros(self.layer_mapper_sizes[l])
@@ -454,13 +488,13 @@ class NeuralNetwork:
         gradient = np.array(accs)
         loss_inner = 0
 
-        N = X_training.shape[0]
+        N = X_train.shape[0]
         for i in range(N):
-            self.forward_propagation(X_training[i])
-            self.backward_propagation_deltas(y_training[i])
+            self.forward_propagation(X_train[i])
+            self.backward_propagation_deltas(y_train[i])
             self.__accumulate_deltas(delta_accumulators)
 
-            loss_inner += self.__loss_single(y_training[i])
+            loss_inner += self.__loss_single(y_train[i])
 
         self.__set_partial_derivatives(gradient, delta_accumulators, N, lambda_param)
         loss = -loss_inner / N + regularization(self.model, N, lambda_param)
@@ -509,14 +543,16 @@ class NeuralNetwork:
                         partial_derivatives[l][i][j] = delta_accumulators[l][i][j] / N_set_size + \
                                                        lambda_param * self.model[l][i][j]
 
-    def fit(self, X_data, y_data, alpha=0.01, num_iter=1000, lambda_param=0, plot=False):
+    def fit(self, X_data, y_data, alpha=0.01, num_iter=1000, lambda_param=0, plot=False, gc_it=-1, gc_log_path=None):
         loss_history, model_trained = gradient_descent(X_data,
                                                        y_data,
                                                        self,
                                                        alpha=alpha,
                                                        num_iter=num_iter,
                                                        lambda_param=lambda_param,
-                                                       plot=plot)
+                                                       plot=plot,
+                                                       gc_it=gc_it,
+                                                       gc_log_path=gc_log_path)
 
         matrix_sizes = get_matrix_sizes(self.model)
         self.model_trained = roll_vec_to_matrix_array(model_trained, matrix_sizes)
