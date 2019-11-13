@@ -77,7 +77,8 @@ def get_matrix_sizes(matrix_array):
     return [matrix.shape for matrix in matrix_array]
 
 
-def regularization(neural_model, N_set_size, lambda_param=0):
+def regularization_depr(neural_model, N_set_size, lambda_param=0):
+    """ZASTARELA, neefikasna"""
     if lambda_param == 0:
         return 0
 
@@ -90,7 +91,7 @@ def regularization(neural_model, N_set_size, lambda_param=0):
     return lambda_param * reg / (2 * N_set_size)
 
 
-def regularization_v2(neural_model, N_set_size, lambda_param=0):
+def regularization(neural_model, N_set_size, lambda_param=0):
     if lambda_param == 0:
         return 0
 
@@ -337,7 +338,7 @@ class NeuralNetwork:
 
         self.layer_mapper_sizes = mappers
 
-        # inicijalizacija modela na nule (obavezno
+        # inicijalizacija modela
         ws = []
         for l in range(self.L - 1):
             w_l = 2 * self.eps_init * np.random.random(self.layer_mapper_sizes[l]) - self.eps_init
@@ -495,13 +496,13 @@ class NeuralNetwork:
             else:
                 delta_lp1 = self.deltas[l + 1][1:]  # ignorisem bias jedinicu delta vektora
 
-            delta_l = self.model[l].transpose().dot(delta_lp1) * g_prim_vec
+            delta_l = self.model[l].T.dot(delta_lp1) * g_prim_vec
             self.set_delta(l, delta_l)
 
         # delta_0 je uvek nula-vektor, postavljen jos prilikom inicijalizacije same mreze
 
-    # Funkcija koja racuna uporedo parcijalne izvode (gradijent) i funkciju gubitka
-    def backpropagation(self, X_train, y_train, lambda_param=0):
+    def backpropagation_depr(self, X_train, y_train, lambda_param=0):
+        """ZASTARELA"""
         accs = []
         for l in range(self.L - 1):
             delta_acc_l = np.zeros(self.layer_mapper_sizes[l])
@@ -522,22 +523,48 @@ class NeuralNetwork:
             loss_inner += loss_instance(y_train[i], y_predict)
 
         self.__set_partial_derivatives(gradient, delta_accumulators, N, lambda_param)
+        loss = loss_inner / N + regularization_depr(self.model, N, lambda_param)
+
+        return loss, unroll_matrix_array(gradient)
+
+    def backpropagation(self, X_train, y_train, lambda_param=0):
+        accs = []
+        for l in range(self.L - 1):
+            delta_acc_l = np.zeros(self.layer_mapper_sizes[l])
+            accs.append(delta_acc_l)
+
+        # Delta_l akumulatori za parcijalne izvode i inicijalni parcijalni izvodi
+        delta_accumulators = np.array(accs)
+        gradient = np.array(accs)
+        loss_inner = 0
+
+        N = X_train.shape[0]
+        for i in range(N):
+            self.forward_propagation(X_train[i])  # propagacija aktivacija unapred
+            self.backward_propagation_deltas(y_train[i])  # propagacije greske unazad
+            self.__accumulate_deltas(delta_accumulators)  # akumulacija greske
+
+            y_predict = self.output_layer  # y_predict se zbog propagacije nalazi u poslednjem sloju
+            loss_inner += loss_instance(y_train[i], y_predict)
+
+        self.__set_gradient(gradient, delta_accumulators, N, lambda_param)
         loss = loss_inner / N + regularization(self.model, N, lambda_param)
 
         return loss, unroll_matrix_array(gradient)
 
     def __accumulate_deltas(self, delta_accumulators):
         for l in range(self.L - 1):
+            a_l = self.network[l].reshape(-1, 1).transpose()
+
             if l + 1 == self.L - 1:
                 delta_lp1 = self.deltas[l + 1].reshape(-1, 1)
             else:
                 delta_lp1 = self.deltas[l + 1][1:].reshape(-1, 1)
 
-            a_l = self.network[l].reshape(-1, 1).transpose()
-
             delta_accumulators[l] += delta_lp1.dot(a_l)
 
     def __set_partial_derivatives(self, partial_derivatives, delta_accumulators, N_set_size, lambda_param):
+        """ZASTARELA, neefikasna"""
         for l in range(self.L - 1):
             for i in range(self.model[l].shape[0]):
                 for j in range(self.model[l].shape[1]):
@@ -546,6 +573,11 @@ class NeuralNetwork:
                     else:
                         partial_derivatives[l][i][j] = delta_accumulators[l][i][j] / N_set_size + \
                                                        lambda_param * self.model[l][i][j]
+
+    def __set_gradient(self, gradient, delta_acc, N, lambda_param):
+        for l in range(self.L - 1):
+            gradient[l] = delta_acc[l] / N + lambda_param * self.model[l]
+            gradient[l][:, 0] -= (lambda_param * self.model[l][:, 0])
 
     def fit(self,
             X_data,
