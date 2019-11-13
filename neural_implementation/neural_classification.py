@@ -12,11 +12,7 @@ def g_sigmoid_derivative(z):
     return g_sigmoid(z) * (1 - g_sigmoid(z))
 
 
-def identity(x):
-    return x
-
-
-def hypothesis_neural(neural_model, input_data):
+def hypothesis_neural(neural_model, input_data, vectorized=False):
     a_l = input_data
 
     for l in range(neural_model.shape[0]):
@@ -29,7 +25,7 @@ def hypothesis_neural(neural_model, input_data):
 
         a_l = a_lp1
 
-    if a_l.shape[0] == 1:
+    if a_l.shape[0] == 1 and vectorized is False:
         return a_l[0]
 
     return a_l
@@ -55,11 +51,7 @@ def roll_vec_to_matrix(vec, matrix_size):
         raise ValueError(f'Nekorektno razvijanje vektora velicine {vec.shape[0]} u matricu'
                          f' dimenzija {rows}x{cols} (matrica od {rows * cols} elemenata)')
 
-    matrix = np.zeros(matrix_size)
-    for i in range(rows):
-        matrix[i] = vec[i * cols: (i + 1) * cols]
-
-    return matrix
+    return vec.reshape(rows, cols)
 
 
 def roll_vec_to_matrix_array(long_vec, matrix_sizes):
@@ -82,11 +74,7 @@ def roll_vec_to_matrix_array(long_vec, matrix_sizes):
 
 
 def get_matrix_sizes(matrix_array):
-    sizes = []
-    for i in range(matrix_array.shape[0]):
-        sizes.append(matrix_array[i].shape)
-
-    return sizes
+    return [matrix.shape for matrix in matrix_array]
 
 
 def regularization(neural_model, N_set_size, lambda_param=0):
@@ -96,10 +84,42 @@ def regularization(neural_model, N_set_size, lambda_param=0):
     reg = 0
     for l in range(neural_model.shape[0]):
         for i in range(neural_model[l].shape[0]):
-            for j in range(1, neural_model[l].shape[1]):
+            for j in range(1, neural_model[l].shape[1]):  # ne kaznjavamo bias jedinice
                 reg += (neural_model[l][i][j]) ** 2
 
     return lambda_param * reg / (2 * N_set_size)
+
+
+def regularization_v2(neural_model, N_set_size, lambda_param=0):
+    if lambda_param == 0:
+        return 0
+
+    reg = 0
+    for l in range(neural_model.shape[0]):
+        reg += (neural_model[l]**2).sum()
+        reg -= (neural_model[l][:, 0]**2).sum()
+
+    return lambda_param * reg / (2 * N_set_size)
+
+
+def loss_instance(y_true, y_predict):
+    out_size = y_true.shape[0]
+
+    loss = 0
+    for k in range(out_size):
+        y = y_true[k]
+        y_pred = y_predict[k]
+
+        if y == 0:
+            # Ignorisemo y*log(y_pred) clan, racunamo -log(1 - y_pred)
+            loss -= np.log(1 - y_pred)
+        elif y == 1:
+            # Ignorisemo (1 - y)*log(1 - y_pred) clan, racunamo -log(y_pred)
+            loss -= np.log(y_pred)
+        else:
+            raise ValueError(f'Incorrect class label {y}')
+
+    return loss
 
 
 def loss_logistic(X_data, y_data, neural_model, lambda_param=0):
@@ -108,24 +128,15 @@ def loss_logistic(X_data, y_data, neural_model, lambda_param=0):
     loss = 0
 
     if out_size == 2:
-        raise ValueError('Nekorektni ulazni podaci: neocekivana duzina ciljnog vektora 2')
-    elif out_size == 1:
-        for i in range(N):
-            y_i = y_data[i][0]
-            y_i_predict = hypothesis_neural(neural_model, X_data[i])
+        raise ValueError('Nekorektni ulazni podaci: neocekivana duzina 2 ciljnog vektora')
 
-            loss += y_i * np.log(y_i_predict) + (1 - y_i) * np.log(1 - y_i_predict)
-    else:
-        for i in range(N):
-            y_i_k_pred_vec = hypothesis_neural(neural_model, X_data[i])
+    for i in range(N):
+        yi = y_data[i]
+        yi_pred = hypothesis_neural(neural_model, X_data[i], vectorized=True)
 
-            for k in range(out_size):
-                y_i_k = y_data[i][k]
-                y_i_k_predict = y_i_k_pred_vec[k]
+        loss += loss_instance(yi, yi_pred)
 
-                loss += y_i_k * np.log(y_i_k_predict) + (1 - y_i_k) * np.log(1 - y_i_k_predict)
-
-    return -loss / N + regularization(neural_model, N, lambda_param)
+    return loss / N + regularization(neural_model, N, lambda_param)
 
 
 def train_test_split(X_data, y_data, ratio='0.7 : 0.3'):
@@ -222,6 +233,7 @@ def gradient_descent(X_data,
                      alpha=0.01,
                      num_iter=1000,
                      lambda_param=0,
+                     model_init_bounds=(-1e-1, 1e-1),
                      plot=False,
                      gc_it=-1,
                      gc_log_path=None):
@@ -231,26 +243,28 @@ def gradient_descent(X_data,
 
     # Pre nego sto zapocnemo trening modela potrebno je da se on inicijalizuje.
     # Za to se koristi random inicijalizacija
-    neural_network.initialize_model()
+    neural_network.initialize_model(model_init_bounds=model_init_bounds)
     w = neural_network.unroll_model()
 
     f = None
-    logged = True
-    if gc_log_path is not None:
+    logged = False
+
+    if gc_it > 0 and gc_log_path is not None:
         try:
             f = open(gc_log_path, 'w')
+            logged = True
         except IOError:
             print('Log file not found: logging to STDOUT ...')
-            logged = False
 
     for i in range(num_iter):
         loss, gradient = neural_network.backpropagation(X_data, y_data, lambda_param)
+        loss_history[i] = loss
 
-        if gc_it > 0 and i % gc_it == 0:
+        if gc_it > 0 and (i == 0 or (i + 1) % gc_it == 0):
             grad_approx = gradient_checking(X_data, y_data, neural_network.model, lambda_param=lambda_param)
 
             diff = abs(gradient - grad_approx)
-            out = f'Iteration {i}:\n############################\nGradient = \n{gradient}\n\nGradient ' \
+            out = f'Iteration {i + 1}:\n############################\nGradient = \n{gradient}\n\nGradient ' \
                   f'approximate =\n{grad_approx}\n\nDiff = \n{diff}\n\n '
             if logged:
                 f.write(out)
@@ -262,8 +276,6 @@ def gradient_descent(X_data,
         # VRLO VAZAN KORAK: nakon sto je model azuriran, treba ga azurirati UNUTAR neuralne
         # mreze kako bi backward propagation algoritam radio sa novim vrednostima modela.
         neural_network.set_model(roll_vec_to_matrix_array(w, matrix_sizes))
-
-        loss_history[i] = loss
 
     if logged:
         f.close()
@@ -287,9 +299,10 @@ class NeuralNetwork:
         self.input_layer_size = input_layer_size
         self.hidden_layers_num = len(hidden_layer_options)
         self.layers_num = self.hidden_layers_num + 2
+        self.L = self.layers_num
         self.output_layer_size = output_layer_size
         self.layer_sizes = [input_layer_size] + hidden_layer_options + [output_layer_size]
-        self.layer_indices = range(self.layers_num)
+        self.layer_indices = range(self.L)
         self.eps_init = eps_init
 
         if output_layer_size == 2:
@@ -316,7 +329,7 @@ class NeuralNetwork:
         # Cuvam dimenzije matrica Wij koje mapiraju slojeve j -> j + 1
         # s(j+1) x (s(j) + 1)
         mappers = {}
-        for l in range(self.layers_num - 1):
+        for l in range(self.L - 1):
             rows = self.layer_sizes[l + 1]
             cols = self.layer_sizes[l] + 1
 
@@ -324,9 +337,9 @@ class NeuralNetwork:
 
         self.layer_mapper_sizes = mappers
 
-        # inicijalizacija modela, tj. matrica W_i za svaki sloj
+        # inicijalizacija modela na nule (obavezno
         ws = []
-        for l in range(self.layers_num - 1):
+        for l in range(self.L - 1):
             w_l = 2 * self.eps_init * np.random.random(self.layer_mapper_sizes[l]) - self.eps_init
             ws.append(w_l)
 
@@ -338,7 +351,7 @@ class NeuralNetwork:
         # podrazumevano za delte sve nule, jer ulazni podaci nemaju gresku.
         deltas = []
         for l in self.layer_indices:
-            if l == self.layers_num - 1:
+            if l == self.L - 1:
                 delta_l = np.zeros(self.layer_sizes[l])
             else:
                 delta_l = np.zeros(self.layer_sizes[l] + 1)
@@ -354,19 +367,19 @@ class NeuralNetwork:
         self.print_network()
 
     def __layer_index_check(self, layer_index):
-        if layer_index < 0 or layer_index >= self.layers_num:
+        if layer_index < 0 or layer_index >= self.L:
             raise IndexError(f'Nekorektan indeks sloja neuralne mreze {layer_index}: '
-                             f'dostupni indeksi 0-{self.layers_num - 1}')
+                             f'dostupni indeksi 0-{self.L - 1}')
 
     def __set_layer_index_check(self, layer_index, set_vec):
         # poslednji sloj NEMA bias unit
-        if layer_index != self.layers_num - 1 and \
+        if layer_index != self.L - 1 and \
                 set_vec.shape[0] != self.layer_sizes[layer_index] + 1:
             error_message = f'Nekorektna dimenzija vektora {set_vec.shape[0]} za sloj ' \
                 f'{layer_index}: ocekivana {self.layer_sizes[layer_index] + 1}'
 
             raise ValueError(error_message)
-        elif layer_index == self.layers_num - 1 and \
+        elif layer_index == self.L - 1 and \
                 set_vec.shape[0] != self.layer_sizes[layer_index]:  # ovde je layer_index poslednji sloj
             error_message = f'Nekorektna dimenzija vektora {set_vec.shape[0]} za ' \
                 f'izlazni sloj {layer_index}: ocekivana {self.layer_sizes[layer_index]}'
@@ -377,10 +390,10 @@ class NeuralNetwork:
         self.__layer_index_check(layer_index)
         self.__set_layer_index_check(layer_index, units_vec)
 
-        self.network[layer_index] = units_vec.copy()
+        self.network[layer_index] = units_vec
 
     def set_all_layers(self, all_layers):
-        for l in range(self.layers_num):
+        for l in range(self.L):
             self.set_layer(l, all_layers[l])
 
     def set_mapper(self, layer_index, mapper):
@@ -393,11 +406,11 @@ class NeuralNetwork:
 
             raise ValueError(error_message)
 
-        self.model[layer_index] = mapper.copy()
+        self.model[layer_index] = mapper
 
     # Funkcija po analogiji za slojeve, radi doslednosti
     def set_all_mappers(self, all_mappers):
-        for l in range(self.layers_num - 1):
+        for l in range(self.L - 1):
             self.set_mapper(l, all_mappers[l])
 
     def set_model(self, all_mappers):
@@ -407,7 +420,7 @@ class NeuralNetwork:
         self.__layer_index_check(layer_index)
         self.__set_layer_index_check(layer_index, delta_vec)
 
-        self.deltas[layer_index] = delta_vec.copy()
+        self.deltas[layer_index] = delta_vec
 
     def set_all_deltas(self, all_deltas):
         for l in self.layer_indices:
@@ -421,10 +434,15 @@ class NeuralNetwork:
     def unroll_model(self):
         return unroll_matrix_array(self.model)
 
-    def initialize_model(self):
+    def initialize_model(self, model_init_bounds=(-1e-1, 1e-1)):
+        a = model_init_bounds[0]
+        b = model_init_bounds[1]
+
+        global w_l
         ws = []
-        for l in range(self.layers_num - 1):
-            w_l = 2 * self.eps_init * np.random.random(self.layer_mapper_sizes[l]) - self.eps_init
+
+        for l in range(self.L - 1):
+            w_l = (b - a) * np.random.random(self.layer_mapper_sizes[l]) + a
             ws.append(w_l)
 
         self.model = np.array(ws)
@@ -433,12 +451,12 @@ class NeuralNetwork:
         a_l = input_layer_data
         self.set_layer(0, a_l)
 
-        for l in range(self.layers_num - 1):
+        for l in range(self.L - 1):
             z_lp1 = self.model[l].dot(a_l)  # z(l+1) = W(l)*a(l)
             a_l = g_sigmoid(z_lp1)  # aktivacija
 
             # Dodavanje bias jedinice u a_l vektor
-            if l != self.layers_num - 2:
+            if l != self.L - 2:
                 a_l = np.concatenate((np.array([1]), a_l))
 
             self.set_layer(l + 1, a_l)
@@ -448,25 +466,31 @@ class NeuralNetwork:
         a_l = input_layer_data
         self.set_layer(0, a_l)
 
-        for l in range(self.layers_num - 1):
+        for l in range(self.L - 1):
             z_lp1 = neural_model[l].dot(a_l)
             a_l = g_sigmoid(z_lp1)
 
             # Dodavanje bias jedinice u a_l vektor
-            if l != self.layers_num - 2:
+            if l != self.L - 2:
                 a_l = np.concatenate((np.array([1]), a_l))
 
             self.set_layer(l + 1, a_l)
 
-    def backward_propagation_deltas(self, y_data):
-        delta_output = self.network[self.layers_num - 1] - y_data
-        self.set_delta(self.layers_num - 1, delta_output)
+    # Vraca ono sto se nalazi u poslednjem sloju
+    @property
+    def output_layer(self):
+        return self.network[self.L - 1]
 
-        for l in range(self.layers_num - 2, 0, -1):
+    # Racuna se greska svakog neurona ponaosob
+    def backward_propagation_deltas(self, y_data):
+        delta_output = y_data - self.output_layer  # Proveriti abs ??
+        self.set_delta(self.L - 1, delta_output)
+
+        for l in range(self.L - 2, 0, -1):
             z_l = self.model[l - 1].dot(self.network[l - 1])  # z(l) = W(l-1)*a(l-1)
             g_prim_vec = np.concatenate((np.array([1]), g_sigmoid_derivative(z_l)))
 
-            if l + 1 == self.layers_num - 1:
+            if l + 1 == self.L - 1:
                 delta_lp1 = self.deltas[l + 1]  # ne postoji bias jedinica za poslednji sloj
             else:
                 delta_lp1 = self.deltas[l + 1][1:]  # ignorisem bias jedinicu delta vektora
@@ -479,7 +503,7 @@ class NeuralNetwork:
     # Funkcija koja racuna uporedo parcijalne izvode (gradijent) i funkciju gubitka
     def backpropagation(self, X_train, y_train, lambda_param=0):
         accs = []
-        for l in range(self.layers_num - 1):
+        for l in range(self.L - 1):
             delta_acc_l = np.zeros(self.layer_mapper_sizes[l])
             accs.append(delta_acc_l)
 
@@ -490,20 +514,21 @@ class NeuralNetwork:
 
         N = X_train.shape[0]
         for i in range(N):
-            self.forward_propagation(X_train[i])
-            self.backward_propagation_deltas(y_train[i])
-            self.__accumulate_deltas(delta_accumulators)
+            self.forward_propagation(X_train[i])  # propagacija aktivacija unapred
+            self.backward_propagation_deltas(y_train[i])  # propagacije greske unazad
+            self.__accumulate_deltas(delta_accumulators)  # akumulacija greske
 
-            loss_inner += self.__loss_single(y_train[i])
+            y_predict = self.output_layer  # y_predict se zbog propagacije nalazi u poslednjem sloju
+            loss_inner += loss_instance(y_train[i], y_predict)
 
         self.__set_partial_derivatives(gradient, delta_accumulators, N, lambda_param)
-        loss = -loss_inner / N + regularization(self.model, N, lambda_param)
+        loss = loss_inner / N + regularization(self.model, N, lambda_param)
 
         return loss, unroll_matrix_array(gradient)
 
     def __accumulate_deltas(self, delta_accumulators):
-        for l in range(self.layers_num - 1):
-            if l + 1 == self.layers_num - 1:
+        for l in range(self.L - 1):
+            if l + 1 == self.L - 1:
                 delta_lp1 = self.deltas[l + 1].reshape(-1, 1)
             else:
                 delta_lp1 = self.deltas[l + 1][1:].reshape(-1, 1)
@@ -512,29 +537,8 @@ class NeuralNetwork:
 
             delta_accumulators[l] += delta_lp1.dot(a_l)
 
-    def __loss_single(self, y_data):
-        # U trenutku pozivanja ove funkcije vec je izvrsen forward propagation
-        # pa nije potrebno ponovo pozivati funkciju hypothesis za predikciju
-        # u odnosu na ulazni podatak y_data (ova vrednost je vec u poslednjen sloju)
-        y_output = self.network[self.layers_num - 1]
-
-        if self.k_classes == 2:
-            y = y_data[0]
-            y_predict = y_output[0]
-
-            return y*np.log(y_predict) + (1 - y)*np.log(1 - y_predict)
-        else:
-            loss_single = 0
-            for k in range(self.k_classes):
-                y_k = y_data[k]
-                y_k_predict = y_output[k]
-
-                loss_single += y_k*np.log(y_k_predict) + (1 - y_k)*np.log(1 - y_k_predict)
-
-            return loss_single
-
     def __set_partial_derivatives(self, partial_derivatives, delta_accumulators, N_set_size, lambda_param):
-        for l in range(self.layers_num - 1):
+        for l in range(self.L - 1):
             for i in range(self.model[l].shape[0]):
                 for j in range(self.model[l].shape[1]):
                     if j == 0:
@@ -543,13 +547,24 @@ class NeuralNetwork:
                         partial_derivatives[l][i][j] = delta_accumulators[l][i][j] / N_set_size + \
                                                        lambda_param * self.model[l][i][j]
 
-    def fit(self, X_data, y_data, alpha=0.01, num_iter=1000, lambda_param=0, plot=False, gc_it=-1, gc_log_path=None):
+    def fit(self,
+            X_data,
+            y_data,
+            alpha=0.01,
+            num_iter=1000,
+            lambda_param=0,
+            model_init_bounds=(-1e-1, 1e-1),
+            plot=False,
+            gc_it=-1,
+            gc_log_path=None):
+
         loss_history, model_trained = gradient_descent(X_data,
                                                        y_data,
                                                        self,
                                                        alpha=alpha,
                                                        num_iter=num_iter,
                                                        lambda_param=lambda_param,
+                                                       model_init_bounds=model_init_bounds,
                                                        plot=plot,
                                                        gc_it=gc_it,
                                                        gc_log_path=gc_log_path)
@@ -562,7 +577,7 @@ class NeuralNetwork:
     def predict(self, input_data):
         self.propagate(self.model_trained, input_data)
 
-        return self.network[self.layers_num - 1]
+        return self.output_layer
 
     def print_layer(self, layer_index):
         self.__layer_index_check(layer_index)
@@ -586,14 +601,14 @@ class NeuralNetwork:
     def print_mapper(self, layer_index):
         self.__layer_index_check(layer_index)
 
-        print(f'W_{layer_index}: {layer_index} -> {layer_index + 1}')
+        print(f'W_{layer_index}: {layer_index} -> {layer_index + 1}, shape: {self.layer_mapper_sizes[layer_index]}')
         print(self.model[layer_index])
 
     def print_model(self):
         print('Model:')
 
-        for l in range(self.layers_num - 1):
-            print(f'W_{l}: {l} -> {l + 1}')
+        for l in range(self.L - 1):
+            print(f'W_{l}: {l} -> {l + 1}, shape: {self.layer_mapper_sizes[l]}')
             print(self.model[l])
 
     def print_delta(self, layer_index):
@@ -604,7 +619,7 @@ class NeuralNetwork:
     def print_deltas(self):
         print('Deltas:')
 
-        for l in range(self.layers_num):
+        for l in range(self.L):
             print(f'delta_{l}:')
             print(self.deltas[l])
 

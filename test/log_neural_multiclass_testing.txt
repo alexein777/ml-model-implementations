@@ -1,0 +1,184 @@
+#%%
+# nn1 = nc.NeuralNetwork(m, [3*m], n_classes)
+#
+# nn1.print_network()
+# print()
+#
+# nn1.print_layer_mapper_sizes()
+# print()
+#
+# nn1.print_model()
+#%%
+# loss, gradient = nn1.backpropagation(X_train_first, y_train_first)
+# grad_approx = nc.gradient_checking(X_train_first, y_train_first, nn1.model)
+#
+# diff = abs(gradient - grad_approx)
+# print('|gradient - grad_approx|:')
+# print(diff)
+#%%
+# lambdas = [0] + [0.01 * (1.5**i) for i in range(8)]
+# print('lamda parameters:')
+# print(lambdas)
+#%%
+# classifiers = [nn1.fit(X_train, y_train, alpha=0.01, lambda_param=lambda_param, plot=True)
+#                for lambda_param in lambdas]
+#%%
+# losses_test = [clf.loss(X_test, y_test) for clf in classifiers]
+#
+# print('Funkcije gubitka za svaki klasifikator posebno na test skupu:')
+# for i in range(len(losses_test)):
+#     print(f'Klasifikator {i}: loss = {losses_test[i]}')
+#%%
+# min_loss = float('inf')
+# best_clf1 = None
+# best_lambda = None
+#
+# for i in range(len(losses_test)):
+#     if losses_test[i] < min_loss:
+#         min_loss = losses_test[i]
+#         best_clf1 = classifiers[i]
+#         best_lambda = lambdas[i]
+#
+# print(f'Najmanji gubitak (na test skupu) za svaki klasifikator: {min_loss}')
+# print(f'Regularizacioni parametar lambda za koji je naucen najbolji model: '
+#       f'{best_clf1.lambda_learned}')
+#%%
+# nc.plot_learning_curves(X_train, y_train, X_test, y_test, best_clf1)
+#%%
+# colors = ['red', 'blue', 'green', 'yellow', 'magenta']
+# for c, cls in zip(colors, classes):
+#     subsample = df.loc[df['variety'] == cls]
+#     plt.scatter(subsample[attr1], subsample[attr2], color=c)
+#
+# plt.xlabel(attr1)
+# plt.ylabel(attr2)
+#
+# plt.legend(classes)
+#%%
+# x1 = np.array([1, 0.5, 0.4]) # Setosa
+# x2 = np.array([1, 4.2, 1.2]) # Versicolor
+# x3 = np.array([1, 5.5, 2]) # Virginca
+# x4 = np.array([1, 2.9, 1.9]) # Letosa
+# x5 = np.array([1, 5.2, 0.8]) # Helenica
+#%%
+# y_predict1 = best_clf1.predict(x1)
+# y_predict2 = best_clf1.predict(x2)
+# y_predict3 = best_clf1.predict(x3)
+# y_predict4 = best_clf1.predict(x4)
+# y_predict5 = best_clf1.predict(x5)
+#
+# print('~ TESTIRANJE KLASIFIKATORA ~')
+#
+# print('Test 1:')
+# nc.Classifier.prediction_info(y_predict1, class_to_name_dict)
+# print()
+#
+# print('Test 2:')
+# nc.Classifier.prediction_info(y_predict2, class_to_name_dict)
+# print()
+#
+# print('Test 3:')
+# nc.Classifier.prediction_info(y_predict3, class_to_name_dict)
+# print()
+#
+# print('Test 4:')
+# nc.Classifier.prediction_info(y_predict4, class_to_name_dict)
+# print()
+#
+# print('Test 5:')
+# nc.Classifier.prediction_info(y_predict5, class_to_name_dict)
+# print()
+#%%
+# #####################################################################
+# ################ PRAVLJENJE NOVE NEURALNE MREZE #####################
+# #####################################################################
+#
+# nn2 = nc.NeuralNetwork(m, [2*m, 2*m], n_classes, 10)
+#
+# nn2.print_network()
+# print()
+#
+# nn2.print_layer_mapper_sizes()
+# print()
+#
+# nn2.print_model()
+#%%
+# loss, gradient = nn2.backpropagation(X_train_first, y_train_first)
+# grad_approx = nc.gradient_checking(X_train_first, y_train_first, nn2.model)
+#
+# diff = abs(gradient - grad_approx)
+# print('|gradient - grad_approx|:')
+# print(diff)
+#%%
+# lambdas = [0] + [0.01 * (1.5**i) for i in range(8)]
+# print('lamda parameters:')
+# print(lambdas)
+#%%
+# classifiers = [nn2.fit(X_train, y_train, alpha=0.01, lambda_param=lambda_param, plot=True)
+#                for lambda_param in lambdas]
+#%%
+# losses_test = [clf.loss(X_test, y_test) for clf in classifiers]
+#
+# print('Funkcije gubitka za svaki klasifikator posebno na test skupu:')
+# for i in range(len(losses_test)):
+#     print(f'Klasifikator {i}: loss = {losses_test[i]}')
+#%%
+# min_loss = float('inf')
+# best_clf2 = None
+# best_lambda = None
+#
+# for i in range(len(losses_test)):
+#     if losses_test[i] < min_loss:
+#         min_loss = losses_test[i]
+#         best_clf2 = classifiers[i]
+#         best_lambda = lambdas[i]
+#
+# print(f'Najmanji gubitak (na test skupu) za svaki klasifikator: {min_loss}')
+# print(f'Regularizacioni parametar lambda za koji je naucen najbolji model: '
+#       f'{best_clf2.lambda_learned}')
+#%%
+# nc.plot_learning_curves(X_train, y_train, X_test, y_test, best_clf2)
+#%%
+# colors = ['red', 'blue', 'green', 'yellow', 'magenta']
+# for c, cls in zip(colors, classes):
+#     subsample = df.loc[df['variety'] == cls]
+#     plt.scatter(subsample[attr1], subsample[attr2], color=c)
+#
+# plt.xlabel(attr1)
+# plt.ylabel(attr2)
+#
+# plt.legend(classes)
+#%%
+# x1 = np.array([1, 0.5, 0.4]) # Setosa
+# x2 = np.array([1, 4.2, 1.2]) # Versicolor
+# x3 = np.array([1, 5.5, 2]) # Virginca
+# x4 = np.array([1, 2.9, 1.9]) # Letosa
+# x5 = np.array([1, 5.2, 0.8]) # Helenica
+#%%
+# y_predict1 = best_clf2.predict(x1)
+# y_predict2 = best_clf2.predict(x2)
+# y_predict3 = best_clf2.predict(x3)
+# y_predict4 = best_clf2.predict(x4)
+# y_predict5 = best_clf2.predict(x5)
+#
+# print('~ TESTIRANJE KLASIFIKATORA ~')
+#
+# print('Test 1:')
+# nc.Classifier.prediction_info(y_predict1, class_to_name_dict)
+# print()
+#
+# print('Test 2:')
+# nc.Classifier.prediction_info(y_predict2, class_to_name_dict)
+# print()
+#
+# print('Test 3:')
+# nc.Classifier.prediction_info(y_predict3, class_to_name_dict)
+# print()
+#
+# print('Test 4:')
+# nc.Classifier.prediction_info(y_predict4, class_to_name_dict)
+# print()
+#
+# print('Test 5:')
+# nc.Classifier.prediction_info(y_predict5, class_to_name_dict)
+# print()
